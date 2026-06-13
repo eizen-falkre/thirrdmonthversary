@@ -77,16 +77,20 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Lovable App" },
-      { name: "description", content: "Lovable Generated Project" },
-      { name: "author", content: "Lovable" },
-      { property: "og:title", content: "Lovable App" },
-      { property: "og:description", content: "Lovable Generated Project" },
+      { title: "Untuk Kamu — Cerita Kita" },
+      { name: "description", content: "Sebuah surat cinta digital dan buku kenangan untuk kamu, sayang." },
+      { property: "og:title", content: "Untuk Kamu — Cerita Kita" },
+      { property: "og:description", content: "Sebuah surat cinta digital dan buku kenangan untuk kamu, sayang." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
-      { name: "twitter:site", content: "@Lovable" },
     ],
     links: [
+      { rel: "preconnect", href: "https://fonts.googleapis.com" },
+      { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
+      {
+        rel: "stylesheet",
+        href: "https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Quicksand:wght@400;500;600&family=Dancing+Script:wght@600;700&display=swap",
+      },
       {
         rel: "stylesheet",
         href: appCss,
