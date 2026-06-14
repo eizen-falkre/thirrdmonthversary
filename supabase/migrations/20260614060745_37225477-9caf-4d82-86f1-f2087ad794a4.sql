@@ -1,0 +1,1 @@
+ALTER TABLE public.memories ADD COLUMN IF NOT EXISTS image_aspect text NOT NULL DEFAULT '16/9';
