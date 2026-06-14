@@ -25,6 +25,7 @@ export type Memory = {
   title: string;
   description: string;
   image_url: string | null;
+  image_aspect: string;
 };
 
 export const SITE_QUERY_KEY = ["site_content"] as const;
