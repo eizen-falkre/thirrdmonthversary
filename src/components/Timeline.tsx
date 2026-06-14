@@ -12,7 +12,7 @@ export function Timeline({ title, memories }: { title: string; memories: Memory[
         <Flourish className="mt-6" />
       </div>
 
-      <div className="relative mx-auto mt-14 max-w-3xl">
+      <div className="relative mx-auto mt-14 max-w-5xl">
         {/* center line (desktop) */}
         <div className="pointer-events-none absolute left-1/2 top-0 hidden h-full w-px -translate-x-1/2 bg-gradient-to-b from-transparent via-[color:var(--gold)]/60 to-transparent sm:block" />
         {/* left line (mobile) */}
@@ -31,7 +31,7 @@ export function Timeline({ title, memories }: { title: string; memories: Memory[
                   whileInView={{ opacity: 1, y: 0, x: 0 }}
                   viewport={{ once: true, margin: "-80px" }}
                   transition={{ duration: 0.9, ease: "easeOut" }}
-                  className={`ml-14 sm:ml-0 sm:w-[46%] ${side === "right" ? "sm:ml-auto sm:pl-8" : "sm:mr-auto sm:pr-8"}`}
+                  className={`ml-14 sm:ml-0 sm:w-[52%] ${side === "right" ? "sm:ml-auto sm:pl-10" : "sm:mr-auto sm:pr-10"}`}
                 >
                   <div className="overflow-hidden rounded-md border border-[oklch(0.9_0.02_45)] bg-[color:var(--ivory)] p-3 shadow-[0_18px_40px_-22px_rgba(70,10,20,0.35)]">
                     <div className="overflow-hidden rounded-sm">
