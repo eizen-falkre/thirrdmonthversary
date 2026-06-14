@@ -20,6 +20,7 @@ export type Database = {
           date_label: string
           description: string
           id: string
+          image_aspect: string
           image_url: string | null
           order_index: number
           title: string
@@ -30,6 +31,7 @@ export type Database = {
           date_label?: string
           description?: string
           id?: string
+          image_aspect?: string
           image_url?: string | null
           order_index?: number
           title?: string
@@ -40,6 +42,7 @@ export type Database = {
           date_label?: string
           description?: string
           id?: string
+          image_aspect?: string
           image_url?: string | null
           order_index?: number
           title?: string

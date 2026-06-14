@@ -35,7 +35,7 @@ export function Timeline({ title, memories }: { title: string; memories: Memory[
                 >
                   <div className="overflow-hidden rounded-md border border-[oklch(0.9_0.02_45)] bg-[color:var(--ivory)] p-3 shadow-[0_18px_40px_-22px_rgba(70,10,20,0.35)]">
                     <div className="overflow-hidden rounded-sm">
-                      <MemoryImage path={m.image_url} alt={m.title || m.week_label} />
+                      <MemoryImage path={m.image_url} alt={m.title || m.week_label} aspect={m.image_aspect} />
                     </div>
                     <div className="px-1 pt-4 pb-2 text-left">
                       <div className="flex items-baseline justify-between gap-3">
