@@ -140,6 +140,18 @@ function Editor() {
             <input className={inputCls} value={site.closing_note} onChange={(e) => setSite({ ...site, closing_note: e.target.value })}/>
           </Field>
 
+          <div className="mt-4 grid gap-4 sm:grid-cols-2">
+            <Field label="Judul penutup">
+              <input className={inputCls} value={site.closing_headline ?? ""} onChange={(e) => setSite({ ...site, closing_headline: e.target.value })}/>
+            </Field>
+            <Field label="Label hitung mundur">
+              <input className={inputCls} value={site.next_label ?? ""} onChange={(e) => setSite({ ...site, next_label: e.target.value })}/>
+            </Field>
+          </div>
+          <Field label="Subjudul penutup" className="mt-4">
+            <input className={inputCls} value={site.closing_subtitle ?? ""} onChange={(e) => setSite({ ...site, closing_subtitle: e.target.value })}/>
+          </Field>
+
           <button onClick={onSaveSite} disabled={saving} className="mt-6 rounded-md bg-[color:var(--wine)] px-5 py-2 text-sm font-medium text-white hover:opacity-90 disabled:opacity-50">
             {saving ? "Menyimpan…" : "Simpan detail"}
           </button>

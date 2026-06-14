@@ -49,10 +49,13 @@ export type Database = {
       }
       site_content: {
         Row: {
+          closing_headline: string
           closing_note: string
+          closing_subtitle: string
           hero_tagline: string
           id: number
           letter_text: string
+          next_label: string
           occasion_title: string
           partner1_name: string
           partner2_name: string
@@ -60,10 +63,13 @@ export type Database = {
           relationship_start_date: string
         }
         Insert: {
+          closing_headline?: string
           closing_note?: string
+          closing_subtitle?: string
           hero_tagline?: string
           id?: number
           letter_text?: string
+          next_label?: string
           occasion_title?: string
           partner1_name?: string
           partner2_name?: string
@@ -71,10 +77,13 @@ export type Database = {
           relationship_start_date?: string
         }
         Update: {
+          closing_headline?: string
           closing_note?: string
+          closing_subtitle?: string
           hero_tagline?: string
           id?: number
           letter_text?: string
+          next_label?: string
           occasion_title?: string
           partner1_name?: string
           partner2_name?: string
