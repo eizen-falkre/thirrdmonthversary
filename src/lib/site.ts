@@ -12,6 +12,9 @@ export type SiteContent = {
   letter_text: string;
   reaffirmation_message: string;
   closing_note: string;
+  closing_headline: string;
+  closing_subtitle: string;
+  next_label: string;
 };
 
 export type Memory = {
