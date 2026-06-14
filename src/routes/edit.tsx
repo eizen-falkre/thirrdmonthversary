@@ -256,6 +256,23 @@ function MemoryManager({
                 <input type="file" accept="image/*" onChange={(e) => e.target.files?.[0] && onFile(m.id, e.target.files[0])} className="text-sm"/>
                 {m.image_url && <p className="mt-1 text-xs text-[color:var(--muted-foreground)]">Tersimpan: {m.image_url}</p>}
               </Field>
+              <Field label="Rasio foto">
+                <select
+                  className={inputCls}
+                  value={m.image_aspect || "16/9"}
+                  onChange={(e) => update(m.id, { image_aspect: e.target.value })}
+                >
+                  <option value="16/9">Landscape lebar (16:9)</option>
+                  <option value="16/10">Landscape (16:10)</option>
+                  <option value="3/2">Foto klasik (3:2)</option>
+                  <option value="4/3">Standar (4:3)</option>
+                  <option value="1/1">Persegi (1:1)</option>
+                  <option value="4/5">Portrait (4:5)</option>
+                  <option value="3/4">Portrait (3:4)</option>
+                  <option value="9/16">Portrait tinggi (9:16)</option>
+                  <option value="21/9">Cinemascope (21:9)</option>
+                </select>
+              </Field>
             </div>
             <button onClick={() => saveOne(m)} className="mt-3 rounded-md bg-[color:var(--wine)] px-4 py-1.5 text-sm text-white hover:opacity-90">
               Simpan memori
