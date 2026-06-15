@@ -83,6 +83,10 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { property: "og:description", content: "Sebuah surat cinta digital dan buku kenangan untuk kamu, sayang." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
+      { name: "twitter:title", content: "Untuk Kamu — Cerita Kita" },
+      { name: "twitter:description", content: "Sebuah surat cinta digital dan buku kenangan untuk kamu, sayang." },
+      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/5b4a1192-1f4e-4018-bcb8-0ee2c315355e/id-preview-5ca90a2c--e9bb3bd8-057b-46fc-9fa4-6d63ac6a178e.lovable.app-1781509086675.png" },
+      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/5b4a1192-1f4e-4018-bcb8-0ee2c315355e/id-preview-5ca90a2c--e9bb3bd8-057b-46fc-9fa4-6d63ac6a178e.lovable.app-1781509086675.png" },
     ],
     links: [
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
