@@ -294,6 +294,24 @@ function AspectEditor({
   const [w, h] = parse(value);
   const ratio = w / h;
 
+  const [signedUrl, setSignedUrl] = useState<string | null>(null);
+  useEffect(() => {
+    let cancelled = false;
+    if (!imageUrl) {
+      setSignedUrl(null);
+      return;
+    }
+    supabase.storage
+      .from("memories")
+      .createSignedUrl(imageUrl, 3600)
+      .then(({ data }) => {
+        if (!cancelled) setSignedUrl(data?.signedUrl ?? null);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [imageUrl]);
+
   const presets = ["21/9", "16/9", "3/2", "4/3", "1/1", "4/5", "3/4", "9/16"];
 
   const boxRef = useRef<HTMLDivElement>(null);
@@ -340,16 +358,16 @@ function AspectEditor({
           className="relative overflow-hidden rounded-md border border-dashed border-[color:var(--gold)] bg-[oklch(0.95_0.02_60)]"
           style={{ width: pw, height: ph, maxWidth: "100%" }}
         >
-          {imageUrl ? (
+          {signedUrl ? (
             <img
-              src={`https://zoadkohuweenbelnujrk.supabase.co/storage/v1/object/public/memories/${imageUrl}`}
+              src={signedUrl}
               alt=""
               className="h-full w-full object-cover"
               draggable={false}
             />
           ) : (
             <div className="flex h-full w-full items-center justify-center font-serif italic text-[color:var(--muted-foreground)]">
-              preview {ratio.toFixed(2)}:1
+              {imageUrl ? "memuat foto…" : `preview ${ratio.toFixed(2)}:1`}
             </div>
           )}
           <div
