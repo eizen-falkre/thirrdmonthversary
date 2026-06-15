@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { Toaster } from "@/components/ui/sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -276,6 +276,150 @@ function MemoryManager({
 
 const inputCls =
   "w-full rounded-md border border-[color:var(--input)] bg-white px-3 py-2 text-sm outline-none focus:border-[color:var(--gold)]";
+
+function AspectEditor({
+  value,
+  imageUrl,
+  onChange,
+}: {
+  value: string;
+  imageUrl: string | null;
+  onChange: (v: string) => void;
+}) {
+  const parse = (s: string): [number, number] => {
+    const [w, h] = s.split("/").map((n) => parseFloat(n));
+    if (!w || !h) return [16, 9];
+    return [w, h];
+  };
+  const [w, h] = parse(value);
+  const ratio = w / h;
+
+  const presets = ["21/9", "16/9", "3/2", "4/3", "1/1", "4/5", "3/4", "9/16"];
+
+  const boxRef = useRef<HTMLDivElement>(null);
+  const dragging = useRef(false);
+
+  const setRatio = (r: number) => {
+    const clamped = Math.max(0.3, Math.min(4, r));
+    // Normalize to width=100
+    const newH = +(100 / clamped).toFixed(2);
+    onChange(`100/${newH}`);
+  };
+
+  const onPointerDown = (e: React.PointerEvent) => {
+    dragging.current = true;
+    (e.target as HTMLElement).setPointerCapture(e.pointerId);
+  };
+  const onPointerMove = (e: React.PointerEvent) => {
+    if (!dragging.current || !boxRef.current) return;
+    const rect = boxRef.current.getBoundingClientRect();
+    const px = Math.max(40, e.clientX - rect.left);
+    const py = Math.max(40, e.clientY - rect.top);
+    setRatio(px / py);
+  };
+  const onPointerUp = (e: React.PointerEvent) => {
+    dragging.current = false;
+    (e.target as HTMLElement).releasePointerCapture(e.pointerId);
+  };
+
+  // Preview sizing — cap to container, max height 220
+  const maxW = 420;
+  const maxH = 220;
+  let pw = maxW;
+  let ph = pw / ratio;
+  if (ph > maxH) {
+    ph = maxH;
+    pw = ph * ratio;
+  }
+
+  return (
+    <div>
+      <div className="flex flex-wrap items-start gap-4">
+        <div
+          ref={boxRef}
+          className="relative overflow-hidden rounded-md border border-dashed border-[color:var(--gold)] bg-[oklch(0.95_0.02_60)]"
+          style={{ width: pw, height: ph, maxWidth: "100%" }}
+        >
+          {imageUrl ? (
+            <img
+              src={`https://zoadkohuweenbelnujrk.supabase.co/storage/v1/object/public/memories/${imageUrl}`}
+              alt=""
+              className="h-full w-full object-cover"
+              draggable={false}
+            />
+          ) : (
+            <div className="flex h-full w-full items-center justify-center font-serif italic text-[color:var(--muted-foreground)]">
+              preview {ratio.toFixed(2)}:1
+            </div>
+          )}
+          <div
+            onPointerDown={onPointerDown}
+            onPointerMove={onPointerMove}
+            onPointerUp={onPointerUp}
+            className="absolute -bottom-2 -right-2 h-6 w-6 cursor-nwse-resize rounded-full border-2 border-[color:var(--wine)] bg-white shadow-md"
+            title="Tarik untuk ubah rasio"
+          />
+        </div>
+        <div className="flex-1 min-w-[180px] space-y-3">
+          <div>
+            <span className="mb-1 block text-xs uppercase tracking-wider text-[color:var(--muted-foreground)]">
+              Rasio (lebar : tinggi) — {ratio.toFixed(2)}
+            </span>
+            <input
+              type="range"
+              min={0.3}
+              max={4}
+              step={0.01}
+              value={ratio}
+              onChange={(e) => setRatio(parseFloat(e.target.value))}
+              className="w-full"
+            />
+          </div>
+          <div className="grid grid-cols-2 gap-2">
+            <label className="text-xs">
+              <span className="mb-1 block uppercase tracking-wider text-[color:var(--muted-foreground)]">Lebar</span>
+              <input
+                type="number"
+                min={1}
+                step={0.1}
+                className={inputCls}
+                value={w}
+                onChange={(e) => onChange(`${e.target.value || 1}/${h}`)}
+              />
+            </label>
+            <label className="text-xs">
+              <span className="mb-1 block uppercase tracking-wider text-[color:var(--muted-foreground)]">Tinggi</span>
+              <input
+                type="number"
+                min={1}
+                step={0.1}
+                className={inputCls}
+                value={h}
+                onChange={(e) => onChange(`${w}/${e.target.value || 1}`)}
+              />
+            </label>
+          </div>
+          <div className="flex flex-wrap gap-1">
+            {presets.map((p) => (
+              <button
+                key={p}
+                type="button"
+                onClick={() => onChange(p)}
+                className={`rounded border px-2 py-0.5 text-xs ${
+                  value === p
+                    ? "border-[color:var(--wine)] bg-[color:var(--wine)] text-white"
+                    : "hover:bg-white"
+                }`}
+              >
+                {p.replace("/", ":")}
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 function Field({
   label,
