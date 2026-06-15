@@ -9,10 +9,19 @@ import {
   type Memory,
   type SiteContent,
 } from "@/lib/site";
+import {
+  addMemory,
+  deleteMemory,
+  saveMemory,
+  swapMemoryOrder,
+  updateSite,
+  uploadMemoryImage,
+  verifyEditorPasscode,
+} from "@/lib/editor.functions";
 
-// Hidden editor. Change this passcode to whatever you like.
-const EDITOR_PASSCODE = "sayangku";
-const STORAGE_KEY = "lovestory_editor_unlocked";
+// The real passcode lives only in the EDITOR_PASSCODE server secret.
+// We keep it in sessionStorage (cleared on tab close) so each save can re-send it.
+const STORAGE_KEY = "lovestory_editor_passcode";
 
 export const Route = createFileRoute("/edit")({
   head: () => ({
@@ -25,30 +34,36 @@ export const Route = createFileRoute("/edit")({
 });
 
 function EditPage() {
-  const [unlocked, setUnlocked] = useState(false);
+  const [passcode, setPasscode] = useState<string | null>(null);
 
   useEffect(() => {
-    if (typeof window !== "undefined" && localStorage.getItem(STORAGE_KEY) === "1") {
-      setUnlocked(true);
-    }
+    if (typeof window === "undefined") return;
+    const saved = sessionStorage.getItem(STORAGE_KEY);
+    if (saved) setPasscode(saved);
   }, []);
 
-  if (!unlocked) return <Lock onUnlock={() => setUnlocked(true)} />;
-  return <Editor />;
+  if (!passcode) return <Lock onUnlock={(p) => setPasscode(p)} />;
+  return <Editor passcode={passcode} onLock={() => setPasscode(null)} />;
 }
 
-function Lock({ onUnlock }: { onUnlock: () => void }) {
+function Lock({ onUnlock }: { onUnlock: (passcode: string) => void }) {
   const [v, setV] = useState("");
+  const [busy, setBusy] = useState(false);
   return (
     <div className="flex min-h-[100svh] items-center justify-center bg-[color:var(--ivory)] px-6">
       <form
-        onSubmit={(e) => {
+        onSubmit={async (e) => {
           e.preventDefault();
-          if (v === EDITOR_PASSCODE) {
-            localStorage.setItem(STORAGE_KEY, "1");
-            onUnlock();
-          } else {
-            toast.error("Kode salah");
+          if (!v) return;
+          setBusy(true);
+          try {
+            await verifyEditorPasscode({ data: { passcode: v } });
+            sessionStorage.setItem(STORAGE_KEY, v);
+            onUnlock(v);
+          } catch (err) {
+            toast.error(err instanceof Error ? err.message : "Kode salah");
+          } finally {
+            setBusy(false);
           }
         }}
         className="w-full max-w-sm rounded-xl border border-[color:var(--border)] bg-[color:var(--card)] p-8 text-center shadow-sm"
@@ -62,8 +77,8 @@ function Lock({ onUnlock }: { onUnlock: () => void }) {
           onChange={(e) => setV(e.target.value)}
           className="mt-6 w-full rounded-md border border-[color:var(--input)] bg-white px-3 py-2 text-center font-mono tracking-widest outline-none focus:border-[color:var(--gold)]"
         />
-        <button className="mt-4 w-full rounded-md bg-[color:var(--wine)] py-2 font-medium text-[color:var(--ivory)] hover:opacity-90">
-          Buka
+        <button disabled={busy} className="mt-4 w-full rounded-md bg-[color:var(--wine)] py-2 font-medium text-[color:var(--ivory)] hover:opacity-90 disabled:opacity-50">
+          {busy ? "Memeriksa…" : "Buka"}
         </button>
       </form>
       <Toaster richColors />
@@ -71,7 +86,7 @@ function Lock({ onUnlock }: { onUnlock: () => void }) {
   );
 }
 
-function Editor() {
+function Editor({ passcode, onLock }: { passcode: string; onLock: () => void }) {
   const [site, setSite] = useState<SiteContent | null>(null);
   const [memories, setMemories] = useState<Memory[]>([]);
   const [saving, setSaving] = useState(false);
@@ -84,13 +99,31 @@ function Editor() {
   const onSaveSite = async () => {
     if (!site) return;
     setSaving(true);
-    const { error } = await supabase
-      .from("site_content" as never)
-      .update(site as never)
-      .eq("id", 1);
-    setSaving(false);
-    if (error) return toast.error(error.message);
-    toast.success("Tersimpan");
+    try {
+      await updateSite({
+        data: {
+          passcode,
+          site: {
+            partner1_name: site.partner1_name,
+            partner2_name: site.partner2_name,
+            relationship_start_date: site.relationship_start_date,
+            occasion_title: site.occasion_title,
+            hero_tagline: site.hero_tagline,
+            letter_text: site.letter_text,
+            reaffirmation_message: site.reaffirmation_message,
+            closing_note: site.closing_note,
+            closing_headline: site.closing_headline,
+            closing_subtitle: site.closing_subtitle,
+            next_label: site.next_label,
+          },
+        },
+      });
+      toast.success("Tersimpan");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Gagal menyimpan");
+    } finally {
+      setSaving(false);
+    }
   };
 
   if (!site) return <div className="p-8 font-serif italic">memuat…</div>;
@@ -103,7 +136,7 @@ function Editor() {
           <div className="flex gap-2">
             <a href="/" className="rounded-md border px-3 py-1.5 text-sm hover:bg-white">Lihat situs</a>
             <button
-              onClick={() => { localStorage.removeItem(STORAGE_KEY); location.reload(); }}
+              onClick={() => { sessionStorage.removeItem(STORAGE_KEY); onLock(); }}
               className="rounded-md border px-3 py-1.5 text-sm hover:bg-white"
             >
               Kunci
@@ -157,7 +190,7 @@ function Editor() {
           </button>
         </section>
 
-        <MemoryManager memories={memories} setMemories={setMemories} />
+        <MemoryManager memories={memories} setMemories={setMemories} passcode={passcode} />
       </div>
       <Toaster richColors />
     </div>
