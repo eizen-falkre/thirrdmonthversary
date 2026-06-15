@@ -200,9 +200,11 @@ function Editor({ passcode, onLock }: { passcode: string; onLock: () => void }) 
 function MemoryManager({
   memories,
   setMemories,
+  passcode,
 }: {
   memories: Memory[];
   setMemories: (m: Memory[]) => void;
+  passcode: string;
 }) {
   const sorted = useMemo(
     () => [...memories].sort((a, b) => a.order_index - b.order_index),
@@ -213,11 +215,12 @@ function MemoryManager({
 
   const addOne = async () => {
     const order = (sorted.at(-1)?.order_index ?? 0) + 1;
-    const { error } = await supabase
-      .from("memories" as never)
-      .insert({ order_index: order, week_label: `Minggu ${order}`, title: "", description: "" } as never);
-    if (error) return toast.error(error.message);
-    refresh();
+    try {
+      await addMemory({ data: { passcode, order_index: order, week_label: `Minggu ${order}` } });
+      refresh();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Gagal menambah");
+    }
   };
 
   const update = async (id: string, patch: Partial<Memory>) => {
@@ -225,16 +228,36 @@ function MemoryManager({
   };
 
   const saveOne = async (m: Memory) => {
-    const { error } = await supabase.from("memories" as never).update(m as never).eq("id", m.id);
-    if (error) return toast.error(error.message);
-    toast.success("Memori tersimpan");
+    try {
+      await saveMemory({
+        data: {
+          passcode,
+          id: m.id,
+          memory: {
+            order_index: m.order_index,
+            week_label: m.week_label,
+            date_label: m.date_label,
+            title: m.title,
+            description: m.description,
+            image_url: m.image_url,
+            image_aspect: m.image_aspect || "16/9",
+          },
+        },
+      });
+      toast.success("Memori tersimpan");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Gagal menyimpan");
+    }
   };
 
   const remove = async (id: string) => {
     if (!confirm("Hapus memori ini?")) return;
-    const { error } = await supabase.from("memories" as never).delete().eq("id", id);
-    if (error) return toast.error(error.message);
-    refresh();
+    try {
+      await deleteMemory({ data: { passcode, id } });
+      refresh();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Gagal menghapus");
+    }
   };
 
   const move = async (id: string, dir: -1 | 1) => {
@@ -242,24 +265,48 @@ function MemoryManager({
     const swap = sorted[idx + dir];
     if (!swap) return;
     const me = sorted[idx];
-    await supabase.from("memories" as never).update({ order_index: swap.order_index } as never).eq("id", me.id);
-    await supabase.from("memories" as never).update({ order_index: me.order_index } as never).eq("id", swap.id);
-    refresh();
+    try {
+      await swapMemoryOrder({
+        data: {
+          passcode,
+          a: { id: me.id, order_index: me.order_index },
+          b: { id: swap.id, order_index: swap.order_index },
+        },
+      });
+      refresh();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Gagal mengurutkan");
+    }
   };
 
   const onFile = async (id: string, file: File) => {
-    const ext = file.name.split(".").pop() ?? "jpg";
-    const path = `${id}-${Date.now()}.${ext}`;
-    const { error: upErr } = await supabase.storage.from("memories").upload(path, file, {
-      cacheControl: "3600",
-      upsert: true,
-      contentType: file.type,
-    });
-    if (upErr) return toast.error(upErr.message);
-    const { error: dbErr } = await supabase.from("memories" as never).update({ image_url: path } as never).eq("id", id);
-    if (dbErr) return toast.error(dbErr.message);
-    toast.success("Foto diupload");
-    refresh();
+    if (file.size > 10 * 1024 * 1024) {
+      toast.error("Ukuran foto maksimal 10MB");
+      return;
+    }
+    try {
+      const buf = await file.arrayBuffer();
+      let bin = "";
+      const bytes = new Uint8Array(buf);
+      const chunk = 0x8000;
+      for (let i = 0; i < bytes.length; i += chunk) {
+        bin += String.fromCharCode(...bytes.subarray(i, i + chunk));
+      }
+      const base64 = btoa(bin);
+      await uploadMemoryImage({
+        data: {
+          passcode,
+          id,
+          filename: file.name,
+          contentType: file.type || "image/jpeg",
+          base64,
+        },
+      });
+      toast.success("Foto diupload");
+      refresh();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Gagal mengupload");
+    }
   };
 
   return (
