@@ -8,5 +8,8 @@
   "main": "dist/server/server.js",
   "compatibility_flags": [
     "nodejs_compat"
-  ]
+  ],
+  "assets": {
+    "directory": "./dist/client"
+  }
 }
