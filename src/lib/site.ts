@@ -28,8 +28,15 @@ export type Memory = {
   image_aspect: string;
 };
 
+export type Reason = {
+  id: string;
+  order_index: number;
+  text: string;
+};
+
 export const SITE_QUERY_KEY = ["site_content"] as const;
 export const MEMORIES_QUERY_KEY = ["memories"] as const;
+export const REASONS_QUERY_KEY = ["reasons"] as const;
 
 export async function fetchSite(): Promise<SiteContent> {
   const { data, error } = await supabase
@@ -50,6 +57,15 @@ export async function fetchMemories(): Promise<Memory[]> {
   return (data ?? []) as unknown as Memory[];
 }
 
+export async function fetchReasons(): Promise<Reason[]> {
+  const { data, error } = await supabase
+    .from("reasons" as never)
+    .select("*")
+    .order("order_index", { ascending: true });
+  if (error) throw error;
+  return (data ?? []) as unknown as Reason[];
+}
+
 export function useSite() {
   return useQuery({ queryKey: SITE_QUERY_KEY, queryFn: fetchSite });
 }
@@ -58,11 +74,16 @@ export function useMemories() {
   return useQuery({ queryKey: MEMORIES_QUERY_KEY, queryFn: fetchMemories });
 }
 
+export function useReasons() {
+  return useQuery({ queryKey: REASONS_QUERY_KEY, queryFn: fetchReasons });
+}
+
 export function useInvalidate() {
   const qc = useQueryClient();
   return () => {
     qc.invalidateQueries({ queryKey: SITE_QUERY_KEY });
     qc.invalidateQueries({ queryKey: MEMORIES_QUERY_KEY });
+    qc.invalidateQueries({ queryKey: REASONS_QUERY_KEY });
   };
 }
 
