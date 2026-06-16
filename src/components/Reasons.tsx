@@ -35,7 +35,7 @@ export function Reasons() {
         <div className="text-center">
           <Flourish className="mb-6 opacity-80" />
           <h2 className="font-serif text-3xl text-[color:var(--wine)] sm:text-4xl">
-            100 Alasan Aku Mencintaimu
+            3++ Alasan Aku Mencintaimu
           </h2>
           <Flourish className="mt-6 opacity-80" />
         </div>
@@ -50,7 +50,7 @@ export function Reasons() {
           className="mx-auto mt-10 max-w-[600px] paper-grain rounded-md p-8 text-center shadow-[0_30px_80px_-30px_rgba(70,10,20,0.35)] sm:p-12"
         >
           <p className="text-[11px] uppercase tracking-[0.4em] text-[color:var(--gold)]">
-            Alasan ke-{current.order_index} dari {total}
+            Alasan ke-{current.order_index} dari 3++
           </p>
           <div className="relative mt-6 min-h-[140px] flex items-center justify-center">
             <AnimatePresence mode="wait">
