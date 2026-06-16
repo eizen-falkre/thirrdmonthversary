@@ -50,6 +50,27 @@ export type Database = {
         }
         Relationships: []
       }
+      reasons: {
+        Row: {
+          created_at: string
+          id: string
+          order_index: number
+          text: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          order_index?: number
+          text?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          order_index?: number
+          text?: string
+        }
+        Relationships: []
+      }
       site_content: {
         Row: {
           closing_headline: string
