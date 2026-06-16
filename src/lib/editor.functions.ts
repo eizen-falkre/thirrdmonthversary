@@ -171,3 +171,77 @@ export const uploadMemoryImage = createServerFn({ method: "POST" })
     if (dbErr) throw new Error(dbErr.message);
     return { image_url: path };
   });
+
+// ===================== Reasons =====================
+
+const reasonText = z.string().min(1).max(500);
+
+export const addReason = createServerFn({ method: "POST" })
+  .inputValidator((d: unknown) =>
+    z.object({
+      passcode: passcodeField,
+      order_index: z.number().int(),
+      text: reasonText.optional(),
+    }).parse(d),
+  )
+  .handler(async ({ data }) => {
+    verify(data.passcode);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { error } = await supabaseAdmin
+      .from("reasons" as never)
+      .insert({ order_index: data.order_index, text: data.text ?? "" } as never);
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
+
+export const saveReason = createServerFn({ method: "POST" })
+  .inputValidator((d: unknown) =>
+    z.object({
+      passcode: passcodeField,
+      id: z.string().uuid(),
+      text: reasonText,
+      order_index: z.number().int(),
+    }).parse(d),
+  )
+  .handler(async ({ data }) => {
+    verify(data.passcode);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { error } = await supabaseAdmin
+      .from("reasons" as never)
+      .update({ text: data.text, order_index: data.order_index } as never)
+      .eq("id", data.id);
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
+
+export const deleteReason = createServerFn({ method: "POST" })
+  .inputValidator((d: unknown) =>
+    z.object({ passcode: passcodeField, id: z.string().uuid() }).parse(d),
+  )
+  .handler(async ({ data }) => {
+    verify(data.passcode);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { error } = await supabaseAdmin.from("reasons" as never).delete().eq("id", data.id);
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
+
+export const reorderReasons = createServerFn({ method: "POST" })
+  .inputValidator((d: unknown) =>
+    z.object({
+      passcode: passcodeField,
+      items: z.array(z.object({ id: z.string().uuid(), order_index: z.number().int() })).max(500),
+    }).parse(d),
+  )
+  .handler(async ({ data }) => {
+    verify(data.passcode);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    for (const it of data.items) {
+      const { error } = await supabaseAdmin
+        .from("reasons" as never)
+        .update({ order_index: it.order_index } as never)
+        .eq("id", it.id);
+      if (error) throw new Error(error.message);
+    }
+    return { ok: true };
+  });
