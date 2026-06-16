@@ -542,3 +542,111 @@ function Field({
     </label>
   );
 }
+
+function ReasonsManager({ passcode }: { passcode: string }) {
+  const [reasons, setReasons] = useState<Reason[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  const refresh = async () => {
+    setLoading(true);
+    try {
+      setReasons(await fetchReasons());
+    } finally {
+      setLoading(false);
+    }
+  };
+  useEffect(() => { refresh(); }, []);
+
+  const sorted = useMemo(
+    () => [...reasons].sort((a, b) => a.order_index - b.order_index),
+    [reasons],
+  );
+
+  const update = (id: string, patch: Partial<Reason>) =>
+    setReasons(reasons.map((r) => (r.id === id ? { ...r, ...patch } : r)));
+
+  const saveOne = async (r: Reason) => {
+    try {
+      await saveReason({
+        data: { passcode, id: r.id, text: r.text, order_index: r.order_index },
+      });
+      toast.success("Alasan tersimpan");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Gagal menyimpan");
+    }
+  };
+
+  const addOne = async () => {
+    const order = (sorted.at(-1)?.order_index ?? 0) + 1;
+    try {
+      await addReason({ data: { passcode, order_index: order, text: "" } });
+      refresh();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Gagal menambah");
+    }
+  };
+
+  const remove = async (id: string) => {
+    if (!confirm("Hapus alasan ini?")) return;
+    try {
+      await deleteReason({ data: { passcode, id } });
+      refresh();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Gagal menghapus");
+    }
+  };
+
+  const move = async (id: string, dir: -1 | 1) => {
+    const idx = sorted.findIndex((r) => r.id === id);
+    const j = idx + dir;
+    if (j < 0 || j >= sorted.length) return;
+    const next = [...sorted];
+    [next[idx], next[j]] = [next[j], next[idx]];
+    const items = next.map((r, i) => ({ id: r.id, order_index: i + 1 }));
+    setReasons(next.map((r, i) => ({ ...r, order_index: i + 1 })));
+    try {
+      await reorderReasons({ data: { passcode, items } });
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Gagal mengurutkan");
+      refresh();
+    }
+  };
+
+  return (
+    <section className="mt-8 rounded-xl border bg-white p-6 shadow-sm">
+      <div className="mb-4 flex items-center justify-between">
+        <h2 className="font-serif text-xl text-[color:var(--wine)]">Alasan</h2>
+        <button onClick={addOne} className="rounded-md bg-[color:var(--wine)] px-3 py-1.5 text-sm text-white hover:opacity-90">
+          + Tambah alasan
+        </button>
+      </div>
+      {loading ? (
+        <p className="font-serif italic text-sm">memuat…</p>
+      ) : (
+        <ul className="space-y-2">
+          {sorted.map((r, i) => (
+            <li key={r.id} className="flex items-start gap-2 rounded-md border bg-[oklch(0.98_0.012_60)] p-3">
+              <span className="mt-2 w-10 shrink-0 text-center font-mono text-xs text-[color:var(--muted-foreground)]">
+                {i + 1}
+              </span>
+              <div className="flex shrink-0 flex-col gap-1">
+                <button onClick={() => move(r.id, -1)} disabled={i === 0} className="rounded border px-2 py-0.5 text-xs disabled:opacity-30">↑</button>
+                <button onClick={() => move(r.id, +1)} disabled={i === sorted.length - 1} className="rounded border px-2 py-0.5 text-xs disabled:opacity-30">↓</button>
+              </div>
+              <textarea
+                rows={2}
+                className={inputCls + " flex-1"}
+                value={r.text}
+                onChange={(e) => update(r.id, { text: e.target.value })}
+              />
+              <div className="flex shrink-0 flex-col gap-1">
+                <button onClick={() => saveOne(r)} className="rounded-md bg-[color:var(--wine)] px-3 py-1 text-xs text-white hover:opacity-90">Simpan</button>
+                <button onClick={() => remove(r.id)} className="rounded border border-red-300 px-3 py-1 text-xs text-red-700 hover:bg-red-50">Hapus</button>
+              </div>
+            </li>
+          ))}
+        </ul>
+      )}
+    </section>
+  );
+}
