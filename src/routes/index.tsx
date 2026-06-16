@@ -6,6 +6,7 @@ import { Hero } from "@/components/Hero";
 import { PromiseCard } from "@/components/PromiseCard";
 import { Timeline } from "@/components/Timeline";
 import { Letter } from "@/components/Letter";
+import { Reasons } from "@/components/Reasons";
 import { Closing } from "@/components/Closing";
 
 export const Route = createFileRoute("/")({
@@ -47,6 +48,7 @@ function Index() {
       <PromiseCard site={site} />
       <Timeline title="Cerita Kita" memories={memories ?? []} />
       <Letter site={site} />
+      <Reasons />
       <Closing site={site} />
     </main>
   );
