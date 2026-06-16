@@ -6,13 +6,19 @@ import { supabase } from "@/integrations/supabase/client";
 import {
   fetchMemories,
   fetchSite,
+  fetchReasons,
   type Memory,
+  type Reason,
   type SiteContent,
 } from "@/lib/site";
 import {
   addMemory,
+  addReason,
   deleteMemory,
+  deleteReason,
+  reorderReasons,
   saveMemory,
+  saveReason,
   swapMemoryOrder,
   updateSite,
   uploadMemoryImage,
@@ -191,6 +197,7 @@ function Editor({ passcode, onLock }: { passcode: string; onLock: () => void }) 
         </section>
 
         <MemoryManager memories={memories} setMemories={setMemories} passcode={passcode} />
+        <ReasonsManager passcode={passcode} />
       </div>
       <Toaster richColors />
     </div>
